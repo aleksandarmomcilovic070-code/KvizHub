@@ -4,9 +4,11 @@ export const getToken = () => localStorage.getItem("token");
 
 export const getUserRole = () => {
   const token = getToken();
+  console.log(token);
   if (!token) return null;
   try {
     const decoded = jwtDecode(token);
+    console.log(decoded);
     return decoded.role || null;
   } catch {
     return null;

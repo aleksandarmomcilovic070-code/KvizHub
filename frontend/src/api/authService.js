@@ -11,11 +11,14 @@ export const login = async (loginData) => {
     }
 
     const response = await axios.post(`${API_URL}/User/Login`, {
-      username: loginData.username,
+      usernameoremail: loginData.usernameoremail,
       password: loginData.password,
     });
-
+    
+    const token=response.data;
+  localStorage.setItem("token",token);
     return response.data; // token
+    
   } catch (error) {
     console.error("Login error:", error);
     throw error;

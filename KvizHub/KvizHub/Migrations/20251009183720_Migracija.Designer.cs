@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KvizHub.Migrations
 {
     [DbContext(typeof(KvizDbContext))]
-    [Migration("20251008152904_Migracija")]
+    [Migration("20251009183720_Migracija")]
     partial class Migracija
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

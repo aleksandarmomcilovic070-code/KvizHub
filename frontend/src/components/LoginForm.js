@@ -9,14 +9,12 @@ function LoginForm() {
   const navigate = useNavigate();
 
   const formik = useFormik({
-    initialValues: { username: "", password: "" },
+    initialValues: { usernameoremail: "", password: "" },
     onSubmit: async (values) => {
       try {
-        const payload = new LoginModel(values.username, values.password);
+        const payload = new LoginModel(values.usernameoremail, values.password);
         const token = await login(payload);
-
         localStorage.setItem("token", token);
-
         const decoded = jwtDecode(token);
         const role = decoded.role;
 
@@ -33,12 +31,12 @@ function LoginForm() {
   return (
     <form onSubmit={formik.handleSubmit}>
       <h2>Login</h2>
-      <label>Username</label>
+      <label>Username or Email</label>
       <input
-        name="username"
+        name="usernameoremail"
         type="text"
         onChange={formik.handleChange}
-        value={formik.values.username}
+        value={formik.values.usernameoremail}
       />
       <label>Password</label>
       <input

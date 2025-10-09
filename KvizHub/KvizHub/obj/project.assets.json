@@ -5889,11 +5889,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Aca\\Desktop\\ZADACI\\KvizHub\\KvizHub\\KvizHub.csproj",
+      "projectUniqueName": "C:\\Users\\Aca\\Desktop\\ZADACI\\Projekat\\KvizHub\\KvizHub\\KvizHub.csproj",
       "projectName": "KvizHub",
-      "projectPath": "C:\\Users\\Aca\\Desktop\\ZADACI\\KvizHub\\KvizHub\\KvizHub.csproj",
+      "projectPath": "C:\\Users\\Aca\\Desktop\\ZADACI\\Projekat\\KvizHub\\KvizHub\\KvizHub.csproj",
       "packagesPath": "C:\\Users\\Aca\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Aca\\Desktop\\ZADACI\\KvizHub\\KvizHub\\obj\\",
+      "outputPath": "C:\\Users\\Aca\\Desktop\\ZADACI\\Projekat\\KvizHub\\KvizHub\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

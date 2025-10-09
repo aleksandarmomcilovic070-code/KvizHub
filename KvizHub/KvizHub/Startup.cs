@@ -119,11 +119,12 @@ namespace KvizHub
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "KvizHub v1"));
             }
 
-            app.UseHttpsRedirection();
-            app.UseCors(_cors);
+            //
+            
 
             app.UseRouting();
-
+            app.UseCors(_cors);
+            //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
