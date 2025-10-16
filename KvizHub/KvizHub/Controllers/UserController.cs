@@ -1,14 +1,15 @@
-﻿using KvizHub.Dto;
-using KvizHub.Interfaces;
-using KvizHub.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Authentication;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using KvizHub.Dto;
+using KvizHub.Interfaces;
 
 namespace KvizHub.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -16,34 +17,47 @@ namespace KvizHub.Controllers
 
         public UserController(IUserService userService)
         {
-            _userService = userService;
-        }
-        [HttpGet]
-        [Authorize (Roles ="Admin")]
-        public IActionResult GetAllUsers() 
-        {
-            return Ok(_userService.GetAllUsers());
-        } 
-        [HttpPost("Login")]
-        [AllowAnonymous]
-        public IActionResult Login([FromBody]LoginDto loginDto) 
-        {
-            return Ok(_userService.Login(loginDto));
+            this._userService = userService;
         }
 
-        [HttpPost("Register")]
-        public IActionResult RegisterUser([FromBody] RegisterDto registerDto) 
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginDto dto)
         {
-            User user;
+            var token = _userService.Login(dto.Email, dto.Password);
+
+            if (token == null)
+            {
+                return Unauthorized(new { error = "Invalid username/email or password" });
+            }
+
+            return Ok(new { token });
+        }
+
+
+
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] UserDto dto)
+        {
             try
             {
-                user = _userService.Register(registerDto);
+                // Register the user and return the JWT token in JSON
+                var token = _userService.Register(dto);
+                return Ok(new { token });
             }
-            catch (InvalidCredentialException e)
+            catch (Exception ex)
             {
-                return Conflict(e.Message);
+                // Return a proper JSON error response
+                return BadRequest(new { error = ex.Message });
             }
-            return Ok(user);
+        }
+
+
+
+        [HttpGet("check")]
+        [Authorize(Roles = "admin")]
+        public IActionResult Check()
+        {
+            return Ok("Admin si"); 
         }
     }
 }

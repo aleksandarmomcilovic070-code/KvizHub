@@ -1,14 +1,19 @@
-﻿using KvizHub.Enums;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace KvizHub.Models
 {
     public class User
     {
-        public int Id { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public UserRole Role { get; set; } = UserRole.Regular;
+        public int Id { get; set; }  
 
+        public string Name { get; set; }
+
+        public string Email { get; set; }
+
+        public string Password { get; set; }
+
+        public string Image { get; set; }
+
+        public string Role { get; set; }
     }
 }

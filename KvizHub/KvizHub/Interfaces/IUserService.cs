@@ -1,13 +1,15 @@
-﻿using KvizHub.Dto;
-using KvizHub.Models;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using KvizHub.Dto;
 
 namespace KvizHub.Interfaces
 {
     public interface IUserService
     {
-        public string Login(LoginDto loginDto);
-        public User Register(RegisterDto registerDto);
-        public List<User> GetAllUsers();
+        string Login(string email, string password);
+
+        string Register(UserDto userDto);
     }
 }

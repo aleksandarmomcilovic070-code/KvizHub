@@ -1,7 +1,4 @@
-﻿using AutoMapper;
-using KvizHub.Dto;
-using KvizHub.Infrastructure;
-using KvizHub.Interfaces;
+﻿using KvizHub.Interfaces;
 using KvizHub.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -11,73 +8,113 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using KvizHub.Dto;
+using KvizHub.Infrastructure;
+
 
 namespace KvizHub.Services
 {
     public class UserService : IUserService
     {
-        private readonly IMapper _mapper;
-        private readonly KvizDbContext _dbContex;
-        private readonly IConfigurationSection _secretKey;
-        public UserService(IConfiguration config, IMapper mapper, KvizDbContext dbContex)
+        private readonly IConfiguration _configuration;
+        private readonly DbContextt _dbContext;
+        private readonly string _issuer;
+        private readonly string _audience;
+        private readonly string _secretKey;
+
+        public UserService(IConfiguration configuration, DbContextt dbContextt)
         {
-            _mapper = mapper;
-            _dbContex = dbContex;
-            _secretKey = config.GetSection("SecretKey");
+            _configuration = configuration;
+            _dbContext = dbContextt;
+
+            var jwtSection = _configuration.GetSection("Jwt");
+            _issuer = jwtSection["Issuer"];
+            _audience = jwtSection["Audience"];
+            _secretKey = jwtSection["SecretKey"];
+
+            if (string.IsNullOrWhiteSpace(_issuer))
+                throw new InvalidOperationException("JWT configuration error: 'Jwt:Issuer' is missing or empty.");
+            if (string.IsNullOrWhiteSpace(_audience))
+                throw new InvalidOperationException("JWT configuration error: 'Jwt:Audience' is missing or empty.");
+            if (string.IsNullOrWhiteSpace(_secretKey))
+                throw new InvalidOperationException("JWT configuration error: 'Jwt:SecretKey' is missing or empty.");
         }
 
-        public List<User> GetAllUsers()
-        {
-            return _dbContex.Users.ToList();
-        }
 
-        public string Login(LoginDto loginDto)
+        public string Login(string identifier, string password)
         {
+            // Try to match either Email OR Username
+            var user = _dbContext.Users
+                .FirstOrDefault(u => u.Email == identifier || u.Name == identifier);
 
-            User user = _dbContex.Users.FirstOrDefault(u => u.Username == loginDto.UsernameOrEmail || u.Email == loginDto.UsernameOrEmail);
-            if (user == null) {
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
                 return null;
             }
-            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash)) 
-            {
-                return null;        
-            }
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("Id", user.Id.ToString()));
-            claims.Add(new Claim(ClaimTypes.Role,user.Role.ToString()));
 
-            SymmetricSecurityKey secretKey =new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey.Value));
-            SigningCredentials signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-            var tokenOptions = new JwtSecurityToken(
-                issuer: "http://localhost:5000",
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.Name),   // always include Name in token
+        new Claim(ClaimTypes.Role, user.Role)
+    };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _issuer,
+                audience: _audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(20),
-                signingCredentials: signingCredentials
+                expires: DateTime.UtcNow.AddMinutes(20),
+                signingCredentials: creds
+            );
 
-                );
-            string tokenString= new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-            Console.WriteLine(tokenString);
-            return tokenString; 
-           
-
-
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public User Register(RegisterDto registerDto)
+
+
+        public string Register(UserDto userDto)
         {
-            if (_dbContex.Users.Any(u => u.Username == registerDto.Username || u.Email==registerDto.Email))
+            // Check if user already exists
+            var existingUser = _dbContext.GetUserById(userDto.Name);
+            if (existingUser != null)
             {
-                throw new System.Exception("Korisnicko ime ili mejl vec postoje");
-            } 
-            string hashedPassword=BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
-            var user=_mapper.Map<User>(registerDto);
-            user.PasswordHash = hashedPassword;
+                throw new Exception("User already exists");
+            }
 
-            _dbContex.Users.Add(user);
-            _dbContex.SaveChanges();
+            // Create new user
+            var user = new User
+            {
+                Name = userDto.Name,
+                Email = userDto.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+                Image = userDto.Image,
+                Role = "korisnik" // default role
+            };
 
-            return user;
+            _dbContext.Users.Add(user);
+            _dbContext.SaveChanges();
 
+            // JWT claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _issuer,
+                audience: _audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(20),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

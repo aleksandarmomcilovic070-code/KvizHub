@@ -54,6 +54,10 @@
               "target": "Package",
               "version": "[11.0.1, )"
             },
+            "Azure.Core": {
+              "target": "Package",
+              "version": "[1.49.0, )"
+            },
             "BCrypt.Net-Next": {
               "target": "Package",
               "version": "[4.0.3, )"
