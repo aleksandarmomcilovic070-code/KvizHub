@@ -25,7 +25,7 @@ namespace KvizHub.Infrastructure.Configurations
 
             builder.HasIndex(x => x.Email).IsUnique();
 
-            builder.HasIndex(x => x.Name).IsUnique(); // ensure Name is unique
+            builder.HasIndex(x => x.Name).IsUnique(); 
         }
     }
 }
